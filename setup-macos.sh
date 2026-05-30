@@ -126,6 +126,15 @@ NODE_PATH="$(command -v node || true)"
 [[ -f "$DIST_JS" ]] || fail "Missing build artifact: $DIST_JS. Run 'npm install && npm run build' first."
 [[ -x "$KICAD_PYTHON" ]] || fail "KiCad Python not found or not executable: $KICAD_PYTHON"
 
+# --- Auto-create virtual environment if missing ---
+if [[ ! -d "$REPO_ROOT/venv" ]]; then
+  echo "${BOLD}${CYAN}Creating virtual environment using KiCad Python...${RESET}"
+  "$KICAD_PYTHON" -m venv "$REPO_ROOT/venv" --system-site-packages || fail "Failed to create virtual environment"
+  echo "${BOLD}${CYAN}Installing Python dependencies...${RESET}"
+  "$REPO_ROOT/venv/bin/pip" install -r "$REPO_ROOT/requirements.txt" || fail "Failed to install dependencies"
+  info "Virtual environment successfully created and populated."
+fi
+
 DETECT_JSON="$("$KICAD_PYTHON" - <<'PY'
 import json, sys, sysconfig
 result = {
